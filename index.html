@@ -224,6 +224,8 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 const HLS_JS = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.20/hls.min.js';
 // Safari's built-in feed player is reliable; on other browsers the app uses hls.js
 const APPLE_HLS = /Apple/.test(navigator.vendor) && !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl');
+// Android, iPad and computers can put the whole player full screen; iPhones can't
+const CAN_FULLSCREEN = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 
 // For testing: ?now=2026-11-09T09:51 makes the page pretend it's that (Irish) time, with the clock running on from there
 const FAKE_START = Date.parse(new URLSearchParams(location.search).get('now') || '');
@@ -385,11 +387,18 @@ function watch(c) {
   } else {
     const v = document.createElement('video');
     v.controls = true;
-    v.playsInline = true;
     v.autoplay = true;
-    v.setAttribute('playsinline', '');
     v.title = `Mass from ${c.name}`;
     v.addEventListener('error', () => offAir(c));
+    if (CAN_FULLSCREEN) {
+      // The whole player (video + Back button) goes full screen, so play the video inside it
+      v.playsInline = true;
+      v.setAttribute('playsinline', '');
+    } else {
+      // iPhone: no full screen for pages, but a video left to play "not inline" opens in the
+      // iPhone's own full-screen player. When she closes that, go back to the list.
+      v.addEventListener('webkitendfullscreen', () => { if (current && current.el === v) back.click(); });
+    }
     current.el = v;
     player.prepend(v);
     if (APPLE_HLS) {

@@ -221,6 +221,31 @@ for (const [name, size] of [['upright', { width: 412, height: 860 }], ['on its s
   }
 }
 
+// ---------- Full screen (Android / computer) ----------
+for (const id of ['bruff', 'stjohns']) {
+  const p = await open(`${MON}T10:05`, { realFeeds: id === 'stjohns' });
+  await tapWatch(p, id);
+  await sleep(500);
+  const fs = await p.evaluate(() => document.fullscreenElement?.id || null);
+  check(`11a ${id}: tapping Watch Mass goes full screen`, fs === 'player', `full screen element: ${fs}`);
+  await tapBack(p);
+  await sleep(300);
+  const after = await p.evaluate(() => ({ fs: document.fullscreenElement?.id || null }));
+  const s = await state(p);
+  check(`11b ${id}: Back leaves full screen and shows the list`, after.fs === null && s.screen === 'list', `${after.fs} / ${s.screen}`);
+  await p.close();
+}
+{ // She swipes out of full screen herself: still watching, Back still there
+  const p = await open(`${MON}T10:05`);
+  await tapWatch(p, 'bruff');
+  await sleep(500);
+  await p.evaluate(() => document.exitFullscreen());
+  await sleep(300);
+  const s = await state(p);
+  check('11c leaving full screen with the phone: still watching, Back button there', s.screen === 'player' && s.backButton, JSON.stringify(s));
+  await p.close();
+}
+
 await browser.close();
 const width = Math.max(...results.map(r => r.name.length));
 for (const r of results) console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.name.padEnd(width)}  ${r.ok && !/off air|plain message/.test(r.name) ? '' : r.detail}`);
