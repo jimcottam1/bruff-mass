@@ -129,6 +129,34 @@ h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-hei
   background: rgba(0, 0, 0, 0.65); color: #fff;
   font: inherit; font-size: 1.375rem; font-weight: 700; cursor: pointer;
 }
+/* "Tap here" sign over the Bruff picture. Taps go straight through it to the play button. */
+/* Bruff's player page has a blue menu bar (Live / Recordings / menu) above the picture.
+   Slide it up out of sight so the picture starts at the top and she can't wander into the menus. */
+.player iframe.trim-top { top: calc(-1 * var(--player-bar)); height: calc(100% + var(--player-bar)); }
+:root { --player-bar: 57px; }
+.tap-sign {
+  position: absolute; z-index: 1;
+  width: max-content; max-width: calc(100% - 32px);
+  display: grid; justify-items: center; gap: 0.2rem;
+  pointer-events: none;
+  text-align: center;
+}
+/* No room below the play button (phone on its side): sit beside it, pointing left */
+.tap-sign.beside { grid-auto-flow: column; align-items: center; gap: 0.4rem; text-align: left; }
+.tap-sign.beside .arrow { transform: rotate(-90deg); }
+.tap-sign .arrow { width: 3rem; height: 3rem; color: #ffd84d; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+.tap-sign p {
+  margin: 0; padding: 0.5rem 1.1rem;
+  border-radius: 14px; border: 3px solid #ffd84d;
+  background: rgba(0, 0, 0, 0.8); color: #fff;
+  font-size: 1.5rem; font-weight: 700; line-height: 1.25;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tap-sign .arrow { animation: nudge 1.2s ease-in-out infinite; }
+  .tap-sign.beside .arrow { animation-name: nudge-left; }
+  @keyframes nudge { 50% { translate: 0 -8px; } }
+  @keyframes nudge-left { 50% { translate: -8px 0; } }
+}
 .message {
   position: absolute; inset: 0;
   display: grid; place-content: center; gap: 0.75rem;
@@ -365,6 +393,52 @@ function loadHls() {
   return hlsReady;
 }
 
+/** Bruff's player needs its own play button tapped: point at it until she taps the picture. */
+function showTapSign(frame) {
+  const sign = document.createElement('div');
+  sign.className = 'tap-sign';
+  sign.id = 'tap-sign';
+  sign.setAttribute('role', 'status');
+  sign.innerHTML = '<svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l8 9h-5v9H9v-9H4z"/></svg><p>Tap the play button<br>to start Mass</p>';
+  player.append(sign);
+  placeTapSign();
+  // A tap on the picture moves focus into the player, which this page sees as losing focus
+  const gone = () => {
+    if (document.activeElement !== frame) return;
+    removeSign();
+  };
+  const check = () => setTimeout(gone, 0);
+  const removeSign = () => {
+    sign.remove();
+    window.removeEventListener('blur', check);
+    window.removeEventListener('resize', placeTapSign);
+  };
+  window.addEventListener('blur', check);
+  window.addEventListener('resize', placeTapSign);   // phone turned, or full screen kicked in
+  setTimeout(removeSign, 120000);   // never leave it up for the whole Mass
+}
+
+/** Where Bruff's play button is: the middle of a 16:9 picture as wide as the screen, starting at the top. */
+function playButtonY() { return Math.min(innerWidth * 9 / 32, innerHeight - 40); }
+
+/** Put the sign just below the play button, or beside it if there's no room below. */
+function placeTapSign() {
+  const sign = document.getElementById('tap-sign');
+  if (!sign) return;
+  const y = playButtonY();
+  const BUTTON = 34;   // half the play button's height, plus a little room
+  sign.classList.remove('beside');
+  sign.style.cssText = '';
+  if (y + BUTTON + sign.offsetHeight <= innerHeight - 8) {
+    sign.style.left = `${(innerWidth - sign.offsetWidth) / 2}px`;
+    sign.style.top = `${y + BUTTON}px`;
+  } else {
+    sign.classList.add('beside');
+    sign.style.left = `${innerWidth / 2 + 56}px`;
+    sign.style.top = `${Math.max(8, y - sign.offsetHeight / 2)}px`;
+  }
+}
+
 /** Full screen, then turn the picture sideways (Android) so the video is as big as it can be. */
 function goFullScreen() {
   const request = player.requestFullscreen || player.webkitRequestFullscreen;
@@ -393,8 +467,10 @@ function watch(c) {
     f.title = `Mass from ${c.name}`;
     f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
     f.allowFullscreen = true;
+    f.className = 'trim-top';
     current.el = f;
     player.prepend(f);
+    showTapSign(f);
   } else {
     const v = document.createElement('video');
     v.controls = true;

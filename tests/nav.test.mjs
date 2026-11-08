@@ -222,7 +222,8 @@ for (const [name, size] of [['upright', { width: 412, height: 860 }], ['on its s
     const p = await open(`${MON}T10:05`, { size });
     await tapWatch(p, id);
     const box = await p.$eval('#player iframe, #player video, #player .message', f => { const r = f.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; });
-    check(`10 ${id} fills the screen, phone ${name}`, box[0] === 0 && box[1] === 0 && box[2] === size.width && box[3] === size.height, box.join(','));
+    const bar = id === 'bruff' ? 57 : 0;   // Bruff's menu bar sits above the top edge, out of sight
+    check(`10 ${id} fills the screen, phone ${name}`, box[0] === 0 && box[1] === -bar && box[2] === size.width && box[3] === size.height + bar, box.join(','));
     await p.close();
   }
 }
@@ -253,6 +254,45 @@ for (const id of ['bruff', 'stjohns']) {
   await sleep(300);
   const s = await state(p);
   check('11c leaving full screen with the phone: still watching, Back button there', s.screen === 'player' && s.backButton, JSON.stringify(s));
+  await p.close();
+}
+
+// ---------- "Tap the play button" sign on Bruff ----------
+for (const [name, size] of [['upright', { width: 412, height: 860 }], ['on its side', { width: 860, height: 412 }], ['small, on its side', { width: 760, height: 360 }]]) {
+  const p = await open(`${MON}T10:05`, { size });
+  await tapWatch(p, 'bruff');
+  // Bruff's play button: middle of a 16:9 picture as wide as the screen, starting at the top; about 90 x 50 px
+  const play = { x: size.width / 2, y: Math.min(size.width * 9 / 32, size.height - 40), halfW: 45, halfH: 25 };
+  const sign = await p.evaluate((play) => {
+    const s = document.getElementById('tap-sign');
+    if (!s) return null;
+    const r = s.getBoundingClientRect();
+    const hit = document.elementFromPoint(play.x, play.y);
+    const overlaps = !(r.right < play.x - play.halfW || r.left > play.x + play.halfW || r.bottom < play.y - play.halfH || r.top > play.y + play.halfH);
+    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, text: s.textContent, overlaps, playTapGoesTo: hit && hit.tagName, side: s.classList.contains('beside') };
+  }, play);
+  check(`12a Bruff (${name}): sign says tap the play button`, sign && /Tap the play button/.test(sign.text), JSON.stringify(sign));
+  check(`12b Bruff (${name}): sign is fully on screen and doesn't cover the play button`, sign && !sign.overlaps && sign.top >= 0 && sign.bottom <= size.height && sign.left >= 0 && sign.right <= size.width, JSON.stringify(sign));
+  check(`12c Bruff (${name}): a tap on the play button reaches the player`, sign && sign.playTapGoesTo === 'IFRAME', sign && sign.playTapGoesTo);
+  const bar = await p.$eval('#player iframe', f => f.getBoundingClientRect().top);
+  check(`12g Bruff (${name}): ChurchCamLive's menu bar is out of sight`, bar === -57, `iframe top ${bar}`);
+  await p.mouse.click(play.x, play.y);
+  await sleep(300);
+  const after = await p.evaluate(() => !!document.getElementById('tap-sign'));
+  check(`12d Bruff (${name}): sign goes once she taps the picture`, after === false, `still there: ${after}`);
+  await p.close();
+}
+{
+  const p = await open(`${MON}T10:05`);
+  await tapWatch(p, 'bruff');
+  await tapBack(p);
+  await tapWatch(p, 'stjohns');
+  const s = await p.evaluate(() => !!document.getElementById('tap-sign'));
+  check("12e no sign on St John's (it plays by itself), even after watching Bruff", s === false);
+  await tapBack(p);
+  await tapWatch(p, 'bruff');
+  const again = await p.evaluate(() => document.querySelectorAll('#tap-sign').length);
+  check('12f the sign comes back (once) the next time she opens Bruff', again === 1, `${again} signs`);
   await p.close();
 }
 
