@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bruff Mass</title>
+<meta name="description" content="Watch Mass live from the Church of Saints Peter and Paul, Bruff.">
+<meta name="theme-color" content="#1d6b45">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<!-- Opened from the home screen icon, it runs like an app: no address bar -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mass">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Crimson+Pro:wght@600&display=swap">
+<style>
+:root {
+  --bg: #f3f5f2;
+  --card: #ffffff;
+  --ink: #15201b;
+  --soft: #46544d;
+  --line: #cfd8d2;
+  --accent: #1d6b45;
+  --accent-ink: #ffffff;
+  --live: #b3261e;
+  --display: "Crimson Pro", Georgia, "Times New Roman", serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101713; --card: #18221c; --ink: #f1f5f2; --soft: #b9c6be; --line: #2f3d35;
+    --accent: #3fae78; --accent-ink: #08130d; --live: #ff8a80; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 1.375rem;  /* 22px: the smallest text on the page */
+  line-height: 1.45;
+}
+
+/* ---- Waiting screen: the next Mass in very large print ---- */
+.wait {
+  min-height: 100dvh;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: max(1.5rem, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+}
+h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-height: 1; margin: 0; }
+.church { margin: 0.35rem 0 0; color: var(--soft); }
+.status {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 1.5rem 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.status .label { margin: 0; color: var(--soft); }
+.status .when { margin: 0; font-size: 2.5rem; font-weight: 700; line-height: 1.15; text-wrap: balance; }
+.status .until { margin: 0; font-size: 1.5rem; }
+.hint { margin: 0; }
+h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
+.times { margin: 0; border-top: 2px solid var(--line); }
+.times div {
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 1rem;
+  padding: 0.7rem 0; border-bottom: 2px solid var(--line);
+}
+.times dt { font-weight: 700; }
+.times dd { margin: 0; }
+.times div.today { background: var(--card); margin-inline: -0.5rem; padding-inline: 0.5rem; }
+.anyway {
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  width: 100%; min-height: 4.5rem;
+  border-radius: 14px; border: 3px solid var(--accent);
+  background: transparent; color: var(--accent);
+  font: inherit; font-size: 1.5rem; font-weight: 700; cursor: pointer;
+}
+.anyway svg { width: 1em; height: 1em; }
+.anyway:focus-visible, .back:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+.note { font-size: 1.125rem; color: var(--soft); margin: 0; }
+
+/* ---- Video screen: the stream fills the whole screen, nothing else ---- */
+.video { position: fixed; inset: 0; background: #000; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.back {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  min-height: 3.5rem; padding: 0 1.1rem;
+  border-radius: 999px; border: 2px solid #fff;
+  background: rgba(0, 0, 0, 0.6); color: #fff;
+  font: inherit; font-size: 1.25rem; font-weight: 700; cursor: pointer;
+}
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<main class="wait" id="wait">
+  <header>
+    <h1>Bruff Mass</h1>
+    <p class="church">Church of Saints Peter and Paul, Bruff</p>
+  </header>
+
+  <section class="status" aria-live="polite">
+    <p class="label">Next Mass</p>
+    <p class="when" id="when">Sunday at 11 in the morning</p>
+    <p class="until" id="until"></p>
+  </section>
+
+  <p class="hint">The video will come up here by itself 10 minutes before Mass. Then tap the play button on the picture.</p>
+
+  <section>
+    <h2>Mass times</h2>
+    <dl class="times" id="times">
+      <div data-days="1,3,5"><dt>Monday, Wednesday, Friday</dt><dd>10 in the morning</dd></div>
+      <div data-days="6"><dt>Saturday</dt><dd>6 in the evening</dd></div>
+      <div data-days="0"><dt>Sunday</dt><dd>11 in the morning</dd></div>
+    </dl>
+  </section>
+
+  <button class="anyway" id="anyway" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>
+    Open the video now
+  </button>
+  <p class="note">For a funeral or a Mass at a different time, use the button above.</p>
+  <p class="note">Times checked on 8 November 2026. They can change at Christmas and Easter.</p>
+</main>
+
+<section class="video" id="video" hidden>
+  <button class="back" id="back" type="button" hidden>&larr; Back</button>
+</section>
+
+<script>
+// The Bruff parish stream on ChurchCamLive
+const STREAM = 'https://churchcamlive.ie/live-stream-wss/index.html?id=x29PisZgApVSvxdC4220284433047508&slug=bruffparishwebcam';
+
+// Mass times in Irish time: day of week (0 = Sunday) and minutes after midnight
+const MASSES = [
+  { day: 1, at: 600 }, { day: 3, at: 600 }, { day: 5, at: 600 },  // Mon, Wed, Fri 10:00
+  { day: 6, at: 1080 },                                             // Sat 18:00
+  { day: 0, at: 660 }                                               // Sun 11:00
+];
+const EARLY = 10;    // minutes before Mass the video comes up
+const LENGTH = 75;   // minutes after the start that still count as "on now" (allows for a long Mass)
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** Day of week and minutes after midnight in Ireland, whatever the phone's own time zone. */
+function irishNow(date) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Dublin', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  }).formatToParts(date).map(p => [p.type, p.value]));
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday);
+  return { day, minutes: Number(parts.hour) * 60 + Number(parts.minute) };
+}
+
+/** "11 in the morning", "6 in the evening", "12 noon" */
+function spoken(at) {
+  const h = Math.floor(at / 60), m = at % 60;
+  if (h === 12 && m === 0) return '12 noon';
+  const hour12 = h % 12 || 12;
+  const time = m ? `${hour12}:${String(m).padStart(2, '0')}` : `${hour12}`;
+  return `${time} ${h < 12 ? 'in the morning' : h < 17 ? 'in the afternoon' : 'in the evening'}`;
+}
+
+function inWords(minutes) {
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+  const hours = Math.round(minutes / 60);
+  return `${hours} hour${hours === 1 ? '' : 's'}`;
+}
+
+/** The nearest Mass: minutes until it starts (negative = already started) */
+function nearest(date) {
+  const now = irishNow(date);
+  const week = 7 * 1440;
+  const nowInWeek = now.day * 1440 + now.minutes;
+  let best = null;
+  for (const m of MASSES) {
+    let ahead = (m.day * 1440 + m.at - nowInWeek + week) % week;
+    if (ahead > week - LENGTH) ahead -= week;   // started recently: it's on now
+    if (best === null || ahead < best.ahead) best = { ...m, ahead, today: now.day };
+  }
+  return best;
+}
+
+const wait = document.getElementById('wait');
+const video = document.getElementById('video');
+const back = document.getElementById('back');
+let frame = null;
+let wakeLock = null;
+
+/** Show the stream full screen. byHand = opened with the button, so offer a way back. */
+function showVideo(byHand) {
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.src = STREAM;
+    frame.title = 'Mass from Bruff, live';
+    frame.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+    frame.allowFullscreen = true;
+    video.prepend(frame);
+  }
+  back.hidden = !byHand;
+  wait.hidden = true;
+  video.hidden = false;
+  // Keep the screen from going dark during Mass
+  if ('wakeLock' in navigator && !wakeLock) {
+    navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
+  }
+}
+
+function showWaiting() {
+  if (frame) { frame.remove(); frame = null; }
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  video.hidden = true;
+  wait.hidden = false;
+}
+
+function update() {
+  const now = new Date();
+  const m = nearest(now);
+  const live = m.ahead <= EARLY;
+
+  if (live) {
+    // Mass is on or about to start: the video comes up by itself
+    if (video.hidden) showVideo(false);
+    return;
+  }
+
+  // Mass has ended. Only take the video away when the person isn't looking at it.
+  if (!video.hidden && !back.hidden) return;   // opened by hand: leave it
+  if (!video.hidden && !document.hidden) return; // still watching: leave it until they come back
+  if (!video.hidden) showWaiting();
+
+  const daysAhead = (m.day - m.today + 7) % 7;
+  const dayWord = daysAhead === 0 ? 'Today' : daysAhead === 1 ? 'Tomorrow' : DAYS[m.day];
+  document.getElementById('when').textContent = `${dayWord} at ${spoken(m.at)}`;
+  document.getElementById('until').textContent = daysAhead === 0 ? `That's in ${inWords(m.ahead)}.` : '';
+  for (const row of document.querySelectorAll('#times div')) {
+    row.classList.toggle('today', row.dataset.days.split(',').map(Number).includes(irishNow(now).day));
+  }
+}
+
+document.getElementById('anyway').addEventListener('click', () => showVideo(true));
+back.addEventListener('click', () => { showWaiting(); update(); });
+
+update();
+setInterval(update, 30000);
+document.addEventListener('visibilitychange', () => {
+  // Coming back to the app after Mass has finished: show the next Mass, not an old video
+  if (document.hidden) return;
+  if (!video.hidden && back.hidden && nearest(new Date()).ahead > EARLY) showWaiting();
+  update();
+  if (!video.hidden && !wakeLock) showVideo(!back.hidden);
+});
+</script>
+</body>
+</html>
