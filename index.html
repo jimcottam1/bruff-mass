@@ -235,6 +235,11 @@ const EARLY = 10;    // minutes before Mass the video comes up
 const LENGTH = 75;   // minutes after the start that still count as "on now" (allows for a long Mass)
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// For testing: ?now=2026-11-09T09:51 makes the page pretend it's that (Irish) time, with the clock running on from there
+const FAKE_START = Date.parse(new URLSearchParams(location.search).get('now') || '');
+const LOADED = Date.now();
+const clock = () => isNaN(FAKE_START) ? new Date() : new Date(FAKE_START + (Date.now() - LOADED));
+
 /** Day of week and minutes after midnight in Ireland, whatever the phone's own time zone. */
 function irishNow(date) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
@@ -306,7 +311,7 @@ function showWaiting() {
 }
 
 function update() {
-  const now = new Date();
+  const now = clock();
   const m = nearest(now);
   const live = m.ahead <= EARLY;
 
@@ -406,7 +411,7 @@ setInterval(update, 30000);
 document.addEventListener('visibilitychange', () => {
   // Coming back to the app after Mass has finished: show the next Mass, not an old video
   if (document.hidden) return;
-  if (!video.hidden && back.hidden && nearest(new Date()).ahead > EARLY) showWaiting();
+  if (!video.hidden && back.hidden && nearest(clock()).ahead > EARLY) showWaiting();
   update();
   if (!video.hidden && !wakeLock) showVideo(!back.hidden);
 });
