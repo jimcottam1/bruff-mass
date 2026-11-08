@@ -26,6 +26,7 @@
   --accent: #1d6b45;
   --accent-ink: #ffffff;
   --live: #b3261e;
+  --live-bg: #fbe9e7;
   --display: "Crimson Pro", Georgia, "Times New Roman", serif;
   --body: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
   color-scheme: light;
@@ -33,7 +34,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #101713; --card: #18221c; --ink: #f1f5f2; --soft: #b9c6be; --line: #2f3d35;
-    --accent: #3fae78; --accent-ink: #08130d; --live: #ff8a80; color-scheme: dark;
+    --accent: #3fae78; --accent-ink: #08130d; --live: #ff8a80; --live-bg: #3a1c1a; color-scheme: dark;
   }
 }
 * { box-sizing: border-box; }
@@ -89,6 +90,53 @@ h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
 .anyway svg { width: 1em; height: 1em; }
 .anyway:focus-visible, .back:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
 .note { font-size: 1.125rem; color: var(--soft); margin: 0; }
+.note a { color: var(--ink); }
+
+/* ---- Other Limerick churches, folded away until tapped ---- */
+.others { border-top: 2px solid var(--line); padding-top: 1rem; display: grid; gap: 0.75rem; }
+.others summary {
+  cursor: pointer; font-size: 1.5rem; font-weight: 700; min-height: 3.5rem;
+  display: flex; align-items: center; gap: 0.6rem; list-style: none;
+}
+.others summary::-webkit-details-marker { display: none; }
+.others summary::before { content: "+"; font-size: 2rem; line-height: 1; width: 1.2em; text-align: center; color: var(--accent); }
+.others[open] summary::before { content: "\2212"; }
+.others summary:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; border-radius: 8px; }
+.others[open] { gap: 1rem; }
+.sub { font-size: 1.375rem; margin: 0; }
+.venues { display: grid; gap: 1rem; }
+.venue {
+  background: var(--card); border: 2px solid var(--line); border-radius: 18px;
+  padding: 1.25rem; display: grid; gap: 0.5rem;
+}
+.venue.live { background: var(--live-bg); border-color: var(--live); }
+.venue h4 { margin: 0; font-size: 1.75rem; line-height: 1.15; text-wrap: balance; }
+.venue .where { margin: 0; color: var(--soft); font-size: 1.125rem; }
+.venue .next { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; display: flex; align-items: center; gap: 0.6rem; }
+.venue .hours { margin: 0; font-size: 1.125rem; color: var(--soft); }
+.venue .watch-small {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 4.5rem; margin-top: 0.4rem; border-radius: 14px;
+  border: 3px solid var(--accent); color: var(--accent);
+  font-size: 1.75rem; font-weight: 700; text-decoration: none;
+}
+.venue.live .watch-small { background: var(--accent); color: var(--accent-ink); }
+.venue .watch-small:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+.dot { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--live); flex: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .dot { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+}
+.church-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.church-list a {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  min-height: 3.5rem; padding: 0.6rem 1rem;
+  border: 2px solid var(--line); border-radius: 14px;
+  background: var(--card); color: var(--ink); text-decoration: none; font-weight: 700;
+}
+.church-list a::after { content: "\203A"; font-size: 2rem; line-height: 1; color: var(--accent); flex: none; }
+.church-list a:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+.church-list .kind { font-weight: 400; color: var(--soft); }
 
 /* ---- Video screen: the stream fills the whole screen, nothing else ---- */
 .video { position: fixed; inset: 0; background: #000; }
@@ -135,6 +183,37 @@ h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
     Open the video now
   </button>
   <p class="note">For a funeral or a Mass at a different time, use the button above.</p>
+
+  <details class="others" id="others">
+    <summary>Watch from another church in Limerick</summary>
+
+    <h3 class="sub">Limerick city</h3>
+    <div class="venues" id="venues"></div>
+
+    <h3 class="sub">More churches</h3>
+    <p class="note">Each one opens that church's page on ChurchCamLive. Tap the play button on the picture there. Each church's Mass times are on its page.</p>
+    <ul class="church-list" id="church-list">
+      <li><a href="https://churchcamlive.ie/ballybricken">Ballybricken</a></li>
+      <li><a href="https://churchcamlive.ie/ballylanders">Ballylanders</a></li>
+      <li><a href="https://churchcamlive.ie/banogueparish">Banogue</a></li>
+      <li><a href="https://churchcamlive.ie/caherconlish-caherline-parish">Caherconlish and Caherline</a></li>
+      <li><a href="https://churchcamlive.ie/cappamore-parish">Cappamore</a></li>
+      <li><a href="https://churchcamlive.ie/croomparish">Croom</a></li>
+      <li><a href="https://churchcamlive.ie/doon-parish-live-stream">Doon</a></li>
+      <li><a href="https://churchcamlive.ie/hospitalherbertstown">Hospital and Herbertstown</a></li>
+      <li><a href="https://churchcamlive.ie/kilbehennyanglesboro">Kilbehenny and Anglesboro</a></li>
+      <li><a href="https://churchcamlive.ie/kilmallock-parish">Kilmallock</a></li>
+      <li><a href="https://churchcamlive.ie/kilteely-dromkeen-parish">Kilteely and Dromkeen</a></li>
+      <li><a href="https://churchcamlive.ie/knockainey-parish-live-stream">Knockainey</a></li>
+      <li><a href="https://churchcamlive.ie/knocklong-glenbrohane-parish-live-stream">Knocklong and Glenbrohane</a></li>
+      <li><a href="https://churchcamlive.ie/lough-gur-patrickswell">Lough Gur and Patrickswell</a></li>
+      <li><a href="https://churchcamlive.ie/nicker-parish">Nicker</a></li>
+      <li><a href="https://churchcamlive.ie/queen-of-peace">Queen of Peace</a></li>
+      <li><a href="https://churchcamlive.ie/limerickstmarys">Saint Mary's Cathedral <span class="kind">(Church of Ireland)</span></a></li>
+    </ul>
+    <p class="note">More Limerick churches are on the <a href="https://www.churchservices.tv/timetable/">ChurchServices.tv timetable</a>.</p>
+  </details>
+
   <p class="note">Times checked on 8 November 2026. They can change at Christmas and Easter.</p>
 </main>
 
@@ -181,14 +260,14 @@ function inWords(minutes) {
 }
 
 /** The nearest Mass: minutes until it starts (negative = already started) */
-function nearest(date) {
+function nearest(date, masses = MASSES, length = LENGTH) {
   const now = irishNow(date);
   const week = 7 * 1440;
   const nowInWeek = now.day * 1440 + now.minutes;
   let best = null;
-  for (const m of MASSES) {
+  for (const m of masses) {
     let ahead = (m.day * 1440 + m.at - nowInWeek + week) % week;
-    if (ahead > week - LENGTH) ahead -= week;   // started recently: it's on now
+    if (ahead > week - length) ahead -= week;   // started recently: it's on now
     if (best === null || ahead < best.ahead) best = { ...m, ahead, today: now.day };
   }
   return best;
@@ -249,7 +328,75 @@ function update() {
   for (const row of document.querySelectorAll('#times div')) {
     row.classList.toggle('today', row.dataset.days.split(',').map(Number).includes(irishNow(now).day));
   }
+  showVenues(now);
 }
+
+// ---- Other Limerick churches ----
+// Limerick city Masses that are streamed live, with their own times (checked 8 November 2026)
+const weekdays = (at) => [1, 2, 3, 4, 5].map(day => ({ day, at }));
+const VENUES = [
+  {
+    name: "St John's Cathedral",
+    where: 'Cathedral Place, Limerick',
+    url: 'https://www.churchservices.tv/limerickcathedral',
+    hours: 'Monday to Friday: 10 in the morning and a quarter to 6 in the evening. Saturday: 6 in the evening. Sunday: half past 10 in the morning and 12 noon.',
+    masses: [...weekdays(600), ...weekdays(1065), { day: 6, at: 1080 }, { day: 0, at: 630 }, { day: 0, at: 720 }]
+  },
+  {
+    name: "St Mary's Church",
+    where: 'Athlunkard Street, Limerick',
+    url: 'https://www.churchservices.tv/limerickstmaryscatholicchurch',
+    hours: 'Monday to Friday: 10 in the morning. Saturday: 5 in the evening. Sunday: half past 11 in the morning.',
+    masses: [...weekdays(600), { day: 6, at: 1020 }, { day: 0, at: 690 }]
+  }
+];
+
+function dotEl() {
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.setAttribute('aria-hidden', 'true');
+  return dot;
+}
+
+/** Build the Limerick city cards once; later updates change only their "next Mass" line. */
+function buildVenues() {
+  const box = document.getElementById('venues');
+  for (const v of VENUES) {
+    const card = document.createElement('article');
+    card.className = 'venue';
+    card.innerHTML = '<h4></h4><p class="where"></p><p class="next"></p><p class="hours"></p>' +
+      '<a class="watch-small" target="_blank" rel="noopener">Watch Mass</a>';
+    card.querySelector('h4').textContent = v.name;
+    card.querySelector('.where').textContent = v.where;
+    card.querySelector('.hours').textContent = v.hours;
+    const link = card.querySelector('a');
+    link.href = v.url;
+    link.setAttribute('aria-label', `Watch Mass at ${v.name}`);
+    v.el = card;
+    box.append(card);
+  }
+}
+
+function showVenues(now) {
+  for (const v of VENUES) {
+    const m = nearest(now, v.masses, 60);
+    const next = v.el.querySelector('.next');
+    const live = m.ahead <= EARLY;
+    v.el.classList.toggle('live', live);
+    if (live) {
+      next.textContent = m.ahead <= 0 ? 'Mass is on now' : `Mass starts in ${inWords(m.ahead)}`;
+      next.prepend(dotEl());
+    } else {
+      const daysAhead = (m.day - m.today + 7) % 7;
+      const dayWord = daysAhead === 0 ? 'Today' : daysAhead === 1 ? 'Tomorrow' : DAYS[m.day];
+      next.textContent = `Next Mass: ${dayWord} at ${spoken(m.at)}`;
+    }
+  }
+}
+
+// Every other church opens in its own tab, so this app stays put underneath
+for (const a of document.querySelectorAll('#others a')) { a.target = '_blank'; a.rel = 'noopener'; }
+buildVenues();
 
 document.getElementById('anyway').addEventListener('click', () => showVideo(true));
 back.addEventListener('click', () => { showWaiting(); update(); });
