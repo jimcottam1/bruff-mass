@@ -295,6 +295,8 @@ function showVideo(byHand) {
     video.prepend(frame);
   }
   back.hidden = !byHand;
+  // Opened by hand: the phone's own Back button should come back here, not close the app
+  if (byHand && !(history.state && history.state.video)) history.pushState({ video: true }, '');
   wait.hidden = true;
   video.hidden = false;
   // Keep the screen from going dark during Mass
@@ -404,7 +406,14 @@ for (const a of document.querySelectorAll('#others a')) { a.target = '_blank'; a
 buildVenues();
 
 document.getElementById('anyway').addEventListener('click', () => showVideo(true));
-back.addEventListener('click', () => { showWaiting(); update(); });
+// The on-screen Back button and the phone's Back button do the same thing
+back.addEventListener('click', () => {
+  if (history.state && history.state.video) history.back();   // popstate below does the rest
+  else { showWaiting(); update(); }
+});
+window.addEventListener('popstate', () => {
+  if (!video.hidden && !back.hidden) { showWaiting(); update(); }
+});
 
 update();
 setInterval(update, 30000);
