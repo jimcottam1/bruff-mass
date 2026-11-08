@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bruff Mass</title>
-<meta name="description" content="Watch Mass live from the Church of Saints Peter and Paul, Bruff.">
+<meta name="description" content="Watch Mass live from Bruff and from Limerick city.">
 <meta name="theme-color" content="#1d6b45">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -46,53 +46,57 @@ body {
   font-size: 1.375rem;  /* 22px: the smallest text on the page */
   line-height: 1.45;
 }
+[hidden] { display: none !important; }
 
-/* ---- Waiting screen: the next Mass in very large print ---- */
-.wait {
+/* ---- Home: one card per church, each saying whether Mass is on ---- */
+.home {
   min-height: 100dvh;
   max-width: 34rem;
   margin: 0 auto;
   padding: max(1.5rem, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display: grid;
   align-content: start;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-height: 1; margin: 0; }
-.church { margin: 0.35rem 0 0; color: var(--soft); }
-.status {
+.intro { margin: 0.35rem 0 0; color: var(--soft); }
+
+.churches { display: grid; gap: 1rem; }
+.church {
   background: var(--card);
   border: 2px solid var(--line);
   border-radius: 18px;
-  padding: 1.5rem 1.25rem;
+  padding: 1.25rem;
   display: grid;
   gap: 0.4rem;
 }
-.status .label { margin: 0; color: var(--soft); }
-.status .when { margin: 0; font-size: 2.5rem; font-weight: 700; line-height: 1.15; text-wrap: balance; }
-.status .until { margin: 0; font-size: 1.5rem; }
-.hint { margin: 0; }
-h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
-.times { margin: 0; border-top: 2px solid var(--line); }
-.times div {
-  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 1rem;
-  padding: 0.7rem 0; border-bottom: 2px solid var(--line);
+.church.live { background: var(--live-bg); border: 3px solid var(--live); }
+.church h2 { margin: 0; font-size: 1.875rem; line-height: 1.15; text-wrap: balance; }
+.church .where { margin: 0; color: var(--soft); font-size: 1.125rem; }
+.church .next { margin: 0.3rem 0 0; font-size: 1.625rem; font-weight: 700; line-height: 1.2; display: flex; align-items: center; gap: 0.6rem; text-wrap: balance; }
+.church .until { margin: 0; font-size: 1.375rem; }
+.church .hours { margin: 0.2rem 0 0; font-size: 1.125rem; color: var(--soft); }
+.dot { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--live); flex: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .dot { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
 }
-.times dt { font-weight: 700; }
-.times dd { margin: 0; }
-.times div.today { background: var(--card); margin-inline: -0.5rem; padding-inline: 0.5rem; }
-.anyway {
+.watch {
   display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-  width: 100%; min-height: 4.5rem;
+  width: 100%; min-height: 4.75rem; margin-top: 0.5rem;
   border-radius: 14px; border: 3px solid var(--accent);
   background: transparent; color: var(--accent);
-  font: inherit; font-size: 1.5rem; font-weight: 700; cursor: pointer;
+  font: inherit; font-size: 1.875rem; font-weight: 700; cursor: pointer;
 }
-.anyway svg { width: 1em; height: 1em; }
-.anyway:focus-visible, .back:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+.church.live .watch { background: var(--accent); color: var(--accent-ink); min-height: 5.5rem; font-size: 2.125rem; }
+.watch svg { width: 0.9em; height: 0.9em; flex: none; }
+.watch:focus-visible, .back:focus-visible, .others summary:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+.watch:active { transform: translateY(2px); }
+
 .note { font-size: 1.125rem; color: var(--soft); margin: 0; }
 .note a { color: var(--ink); }
 
-/* ---- Other Limerick churches, folded away until tapped ---- */
+/* ---- More churches: links only, folded away ---- */
 .others { border-top: 2px solid var(--line); padding-top: 1rem; display: grid; gap: 0.75rem; }
 .others summary {
   cursor: pointer; font-size: 1.5rem; font-weight: 700; min-height: 3.5rem;
@@ -101,32 +105,7 @@ h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
 .others summary::-webkit-details-marker { display: none; }
 .others summary::before { content: "+"; font-size: 2rem; line-height: 1; width: 1.2em; text-align: center; color: var(--accent); }
 .others[open] summary::before { content: "\2212"; }
-.others summary:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; border-radius: 8px; }
 .others[open] { gap: 1rem; }
-.sub { font-size: 1.375rem; margin: 0; }
-.venues { display: grid; gap: 1rem; }
-.venue {
-  background: var(--card); border: 2px solid var(--line); border-radius: 18px;
-  padding: 1.25rem; display: grid; gap: 0.5rem;
-}
-.venue.live { background: var(--live-bg); border-color: var(--live); }
-.venue h4 { margin: 0; font-size: 1.75rem; line-height: 1.15; text-wrap: balance; }
-.venue .where { margin: 0; color: var(--soft); font-size: 1.125rem; }
-.venue .next { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.2; display: flex; align-items: center; gap: 0.6rem; }
-.venue .hours { margin: 0; font-size: 1.125rem; color: var(--soft); }
-.venue .watch-small {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 4.5rem; margin-top: 0.4rem; border-radius: 14px;
-  border: 3px solid var(--accent); color: var(--accent);
-  font-size: 1.75rem; font-weight: 700; text-decoration: none;
-}
-.venue.live .watch-small { background: var(--accent); color: var(--accent-ink); }
-.venue .watch-small:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
-.dot { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--live); flex: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .dot { animation: pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse { 50% { opacity: 0.35; } }
-}
 .church-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
 .church-list a {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
@@ -138,60 +117,41 @@ h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
 .church-list a:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
 .church-list .kind { font-weight: 400; color: var(--soft); }
 
-/* ---- Video screen: the stream fills the whole screen, nothing else ---- */
-.video { position: fixed; inset: 0; background: #000; }
-.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+/* ---- Player: the chosen church fills the whole screen, with a big Back button ---- */
+.player { position: fixed; inset: 0; background: #000; color: #fff; }
+.player iframe, .player video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; object-fit: contain; }
 .back {
-  position: absolute;
+  position: absolute; z-index: 2;
   top: max(10px, env(safe-area-inset-top));
   left: max(10px, env(safe-area-inset-left));
-  min-height: 3.5rem; padding: 0 1.1rem;
+  min-height: 3.5rem; padding: 0 1.2rem;
   border-radius: 999px; border: 2px solid #fff;
-  background: rgba(0, 0, 0, 0.6); color: #fff;
-  font: inherit; font-size: 1.25rem; font-weight: 700; cursor: pointer;
+  background: rgba(0, 0, 0, 0.65); color: #fff;
+  font: inherit; font-size: 1.375rem; font-weight: 700; cursor: pointer;
 }
-[hidden] { display: none !important; }
+.message {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; gap: 0.75rem;
+  padding: 5rem max(24px, env(safe-area-inset-right)) 2rem max(24px, env(safe-area-inset-left));
+  text-align: center; font-size: 1.75rem; line-height: 1.3;
+}
+.message p { margin: 0; max-width: 24rem; }
+.message .small { font-size: 1.375rem; color: #c9d3cd; }
 </style>
 </head>
 <body>
 
-<main class="wait" id="wait">
+<main class="home" id="home">
   <header>
-    <h1>Bruff Mass</h1>
-    <p class="church">Church of Saints Peter and Paul, Bruff</p>
+    <h1>Watch Mass</h1>
+    <p class="intro">Tap <strong>Watch Mass</strong> under a church. A red card means Mass is on there now.</p>
   </header>
 
-  <section class="status" aria-live="polite">
-    <p class="label">Next Mass</p>
-    <p class="when" id="when">Sunday at 11 in the morning</p>
-    <p class="until" id="until"></p>
-  </section>
-
-  <p class="hint">The video will come up here by itself 10 minutes before Mass. Then tap the play button on the picture.</p>
-
-  <section>
-    <h2>Mass times</h2>
-    <dl class="times" id="times">
-      <div data-days="1,3,5"><dt>Monday, Wednesday, Friday</dt><dd>10 in the morning</dd></div>
-      <div data-days="6"><dt>Saturday</dt><dd>6 in the evening</dd></div>
-      <div data-days="0"><dt>Sunday</dt><dd>11 in the morning</dd></div>
-    </dl>
-  </section>
-
-  <button class="anyway" id="anyway" type="button">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>
-    Open the video now
-  </button>
-  <p class="note">For a funeral or a Mass at a different time, use the button above.</p>
+  <div class="churches" id="churches"></div>
 
   <details class="others" id="others">
-    <summary>Watch from another church in Limerick</summary>
-
-    <h3 class="sub">Limerick city</h3>
-    <div class="venues" id="venues"></div>
-
-    <h3 class="sub">More churches</h3>
-    <p class="note">Each one opens that church's page on ChurchCamLive. Tap the play button on the picture there. Each church's Mass times are on its page.</p>
+    <summary>More churches in Limerick</summary>
+    <p class="note">Each one opens that church's own page. Tap the play button on the picture there. Each church's Mass times are on its page.</p>
     <ul class="church-list" id="church-list">
       <li><a href="https://churchcamlive.ie/ballybricken">Ballybricken</a></li>
       <li><a href="https://churchcamlive.ie/ballylanders">Ballylanders</a></li>
@@ -214,26 +174,56 @@ h2 { font-size: 1.625rem; margin: 0 0 0.5rem; }
     <p class="note">More Limerick churches are on the <a href="https://www.churchservices.tv/timetable/">ChurchServices.tv timetable</a>.</p>
   </details>
 
-  <p class="note">Times checked on 8 November 2026. They can change at Christmas and Easter.</p>
+  <p class="note">Times checked on 8 November 2026. They can change at Christmas and Easter, and for funerals.</p>
 </main>
 
-<section class="video" id="video" hidden>
-  <button class="back" id="back" type="button" hidden>&larr; Back</button>
+<section class="player" id="player" hidden aria-label="Mass video">
+  <button class="back" id="back" type="button">&larr; Back</button>
 </section>
 
 <script>
-// The Bruff parish stream on ChurchCamLive
-const STREAM = 'https://churchcamlive.ie/live-stream-wss/index.html?id=x29PisZgApVSvxdC4220284433047508&slug=bruffparishwebcam';
-
-// Mass times in Irish time: day of week (0 = Sunday) and minutes after midnight
-const MASSES = [
-  { day: 1, at: 600 }, { day: 3, at: 600 }, { day: 5, at: 600 },  // Mon, Wed, Fri 10:00
-  { day: 6, at: 1080 },                                             // Sat 18:00
-  { day: 0, at: 660 }                                               // Sun 11:00
+// ---- The churches on the front screen ----
+// Mass times are Irish time: day of week (0 = Sunday) and minutes after midnight.
+// kind 'page'  = the church's own player page, shown full screen (she taps its play button)
+// kind 'video' = a live video feed the app plays itself, with sound, from the one tap
+const weekdays = (at) => [1, 2, 3, 4, 5].map(day => ({ day, at }));
+const CHURCHES = [
+  {
+    id: 'bruff',
+    name: 'Bruff',
+    where: 'Church of Saints Peter and Paul',
+    kind: 'page',
+    src: 'https://churchcamlive.ie/live-stream-wss/index.html?id=x29PisZgApVSvxdC4220284433047508&slug=bruffparishwebcam',
+    hint: 'Tap the play button in the middle of the picture.',
+    hours: 'Monday, Wednesday and Friday: 10 in the morning. Saturday: 6 in the evening. Sunday: 11 in the morning.',
+    masses: [{ day: 1, at: 600 }, { day: 3, at: 600 }, { day: 5, at: 600 }, { day: 6, at: 1080 }, { day: 0, at: 660 }]
+  },
+  {
+    id: 'stjohns',
+    name: "St John's Cathedral",
+    where: 'Cathedral Place, Limerick',
+    kind: 'video',
+    src: 'https://cdn3.wowza.com/5/TXkrK21OZktJNm91/CSTV-HTTP/limerickcathedral.stream/playlist.m3u8',
+    hours: 'Monday to Friday: 10 in the morning and a quarter to 6 in the evening. Saturday: 6 in the evening. Sunday: half past 10 in the morning and 12 noon.',
+    masses: [...weekdays(600), ...weekdays(1065), { day: 6, at: 1080 }, { day: 0, at: 630 }, { day: 0, at: 720 }]
+  },
+  {
+    id: 'stmarys',
+    name: "St Mary's Church",
+    where: 'Athlunkard Street, Limerick',
+    kind: 'video',
+    src: 'https://cdn3.wowza.com/5/TXkrK21OZktJNm91/CSTV-HTTP/limstmaryscath.stream/playlist.m3u8',
+    hours: 'Monday to Friday: 10 in the morning. Saturday: 5 in the evening. Sunday: half past 11 in the morning.',
+    masses: [...weekdays(600), { day: 6, at: 1020 }, { day: 0, at: 690 }]
+  }
 ];
-const EARLY = 10;    // minutes before Mass the video comes up
-const LENGTH = 75;   // minutes after the start that still count as "on now" (allows for a long Mass)
+
+const EARLY = 10;    // minutes before Mass a card turns red
+const LENGTH = 60;   // minutes after the start a card stays red
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const HLS_JS = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.20/hls.min.js';
+// Safari's built-in feed player is reliable; on other browsers the app uses hls.js
+const APPLE_HLS = /Apple/.test(navigator.vendor) && !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl');
 
 // For testing: ?now=2026-11-09T09:51 makes the page pretend it's that (Irish) time, with the clock running on from there
 const FAKE_START = Date.parse(new URLSearchParams(location.search).get('now') || '');
@@ -264,99 +254,23 @@ function inWords(minutes) {
   return `${hours} hour${hours === 1 ? '' : 's'}`;
 }
 
-/** The nearest Mass: minutes until it starts (negative = already started) */
-function nearest(date, masses = MASSES, length = LENGTH) {
+/** What to say about one church right now: { live, text, until } */
+function status(date, masses) {
   const now = irishNow(date);
   const week = 7 * 1440;
   const nowInWeek = now.day * 1440 + now.minutes;
   let best = null;
   for (const m of masses) {
     let ahead = (m.day * 1440 + m.at - nowInWeek + week) % week;
-    if (ahead > week - length) ahead -= week;   // started recently: it's on now
-    if (best === null || ahead < best.ahead) best = { ...m, ahead, today: now.day };
+    if (ahead > week - LENGTH) ahead -= week;   // started less than an hour ago: it's on now
+    if (best === null || ahead < best.ahead) best = { ...m, ahead };
   }
-  return best;
+  if (best.ahead <= 0) return { live: true, text: 'Mass is on now', until: `It started at ${spoken(best.at)}.` };
+  if (best.ahead <= EARLY) return { live: true, text: `Mass starts in ${inWords(best.ahead)}`, until: 'You can open it now and wait.' };
+  const daysAhead = (best.day - now.day + 7) % 7;
+  const dayWord = daysAhead === 0 ? 'Today' : daysAhead === 1 ? 'Tomorrow' : DAYS[best.day];
+  return { live: false, text: `Next Mass: ${dayWord} at ${spoken(best.at)}`, until: daysAhead === 0 ? `That's in ${inWords(best.ahead)}.` : '' };
 }
-
-const wait = document.getElementById('wait');
-const video = document.getElementById('video');
-const back = document.getElementById('back');
-let frame = null;
-let wakeLock = null;
-
-/** Show the stream full screen. byHand = opened with the button, so offer a way back. */
-function showVideo(byHand) {
-  if (!frame) {
-    frame = document.createElement('iframe');
-    frame.src = STREAM;
-    frame.title = 'Mass from Bruff, live';
-    frame.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
-    frame.allowFullscreen = true;
-    video.prepend(frame);
-  }
-  back.hidden = !byHand;
-  // Opened by hand: the phone's own Back button should come back here, not close the app
-  if (byHand && !(history.state && history.state.video)) history.pushState({ video: true }, '');
-  wait.hidden = true;
-  video.hidden = false;
-  // Keep the screen from going dark during Mass
-  if ('wakeLock' in navigator && !wakeLock) {
-    navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
-  }
-}
-
-function showWaiting() {
-  if (frame) { frame.remove(); frame = null; }
-  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-  video.hidden = true;
-  wait.hidden = false;
-}
-
-function update() {
-  const now = clock();
-  const m = nearest(now);
-  const live = m.ahead <= EARLY;
-
-  if (live) {
-    // Mass is on or about to start: the video comes up by itself
-    if (video.hidden) showVideo(false);
-    return;
-  }
-
-  // Mass has ended. Only take the video away when the person isn't looking at it.
-  if (!video.hidden && !back.hidden) return;   // opened by hand: leave it
-  if (!video.hidden && !document.hidden) return; // still watching: leave it until they come back
-  if (!video.hidden) showWaiting();
-
-  const daysAhead = (m.day - m.today + 7) % 7;
-  const dayWord = daysAhead === 0 ? 'Today' : daysAhead === 1 ? 'Tomorrow' : DAYS[m.day];
-  document.getElementById('when').textContent = `${dayWord} at ${spoken(m.at)}`;
-  document.getElementById('until').textContent = daysAhead === 0 ? `That's in ${inWords(m.ahead)}.` : '';
-  for (const row of document.querySelectorAll('#times div')) {
-    row.classList.toggle('today', row.dataset.days.split(',').map(Number).includes(irishNow(now).day));
-  }
-  showVenues(now);
-}
-
-// ---- Other Limerick churches ----
-// Limerick city Masses that are streamed live, with their own times (checked 8 November 2026)
-const weekdays = (at) => [1, 2, 3, 4, 5].map(day => ({ day, at }));
-const VENUES = [
-  {
-    name: "St John's Cathedral",
-    where: 'Cathedral Place, Limerick',
-    url: 'https://www.churchservices.tv/limerickcathedral',
-    hours: 'Monday to Friday: 10 in the morning and a quarter to 6 in the evening. Saturday: 6 in the evening. Sunday: half past 10 in the morning and 12 noon.',
-    masses: [...weekdays(600), ...weekdays(1065), { day: 6, at: 1080 }, { day: 0, at: 630 }, { day: 0, at: 720 }]
-  },
-  {
-    name: "St Mary's Church",
-    where: 'Athlunkard Street, Limerick',
-    url: 'https://www.churchservices.tv/limerickstmaryscatholicchurch',
-    hours: 'Monday to Friday: 10 in the morning. Saturday: 5 in the evening. Sunday: half past 11 in the morning.',
-    masses: [...weekdays(600), { day: 6, at: 1020 }, { day: 0, at: 690 }]
-  }
-];
 
 function dotEl() {
   const dot = document.createElement('span');
@@ -365,64 +279,173 @@ function dotEl() {
   return dot;
 }
 
-/** Build the Limerick city cards once; later updates change only their "next Mass" line. */
-function buildVenues() {
-  const box = document.getElementById('venues');
-  for (const v of VENUES) {
+// ---- Front screen ----
+const home = document.getElementById('home');
+const player = document.getElementById('player');
+const back = document.getElementById('back');
+
+function buildCards() {
+  const box = document.getElementById('churches');
+  for (const c of CHURCHES) {
     const card = document.createElement('article');
-    card.className = 'venue';
-    card.innerHTML = '<h4></h4><p class="where"></p><p class="next"></p><p class="hours"></p>' +
-      '<a class="watch-small" target="_blank" rel="noopener">Watch Mass</a>';
-    card.querySelector('h4').textContent = v.name;
-    card.querySelector('.where').textContent = v.where;
-    card.querySelector('.hours').textContent = v.hours;
-    const link = card.querySelector('a');
-    link.href = v.url;
-    link.setAttribute('aria-label', `Watch Mass at ${v.name}`);
-    v.el = card;
+    card.className = 'church';
+    card.id = `church-${c.id}`;
+    card.innerHTML = '<h2></h2><p class="where"></p><p class="next" aria-live="polite"></p><p class="until"></p>' +
+      '<button class="watch" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>Watch Mass</button>' +
+      '<p class="hours"></p>';
+    card.querySelector('h2').textContent = c.name;
+    card.querySelector('.where').textContent = c.where;
+    card.querySelector('.hours').textContent = c.hours;
+    const btn = card.querySelector('.watch');
+    btn.setAttribute('aria-label', `Watch Mass from ${c.name}`);
+    btn.addEventListener('click', () => watch(c));
+    c.el = card;
     box.append(card);
   }
 }
 
-function showVenues(now) {
-  for (const v of VENUES) {
-    const m = nearest(now, v.masses, 60);
-    const next = v.el.querySelector('.next');
-    const live = m.ahead <= EARLY;
-    v.el.classList.toggle('live', live);
-    if (live) {
-      next.textContent = m.ahead <= 0 ? 'Mass is on now' : `Mass starts in ${inWords(m.ahead)}`;
-      next.prepend(dotEl());
-    } else {
-      const daysAhead = (m.day - m.today + 7) % 7;
-      const dayWord = daysAhead === 0 ? 'Today' : daysAhead === 1 ? 'Tomorrow' : DAYS[m.day];
-      next.textContent = `Next Mass: ${dayWord} at ${spoken(m.at)}`;
-    }
+function update() {
+  const now = clock();
+  for (const c of CHURCHES) {
+    const s = status(now, c.masses);
+    c.el.classList.toggle('live', s.live);
+    const next = c.el.querySelector('.next');
+    next.textContent = s.text;
+    if (s.live) next.prepend(dotEl());
+    c.el.querySelector('.until').textContent = s.until;
   }
 }
 
-// Every other church opens in its own tab, so this app stays put underneath
-for (const a of document.querySelectorAll('#others a')) { a.target = '_blank'; a.rel = 'noopener'; }
-buildVenues();
+// ---- Watching ----
+let current = null;   // { church, el, hls }
+let wakeLock = null;
 
-document.getElementById('anyway').addEventListener('click', () => showVideo(true));
+function keepAwake() {
+  if ('wakeLock' in navigator && !wakeLock && !document.hidden) {
+    navigator.wakeLock.request('screen').then(l => { wakeLock = l; l.addEventListener('release', () => { wakeLock = null; }); }).catch(() => {});
+  }
+}
+
+function showMessage(lines) {
+  const box = document.createElement('div');
+  box.className = 'message';
+  box.setAttribute('role', 'status');
+  for (const [text, cls] of lines) {
+    const p = document.createElement('p');
+    p.textContent = text;
+    if (cls) p.className = cls;
+    box.append(p);
+  }
+  player.append(box);
+}
+
+/** The feed isn't on: say so plainly, and when the next Mass is. */
+function offAir(c) {
+  if (!current || current.church !== c) return;
+  if (current.el) current.el.remove();
+  if (current.hls) { current.hls.destroy(); current.hls = null; }
+  const s = status(clock(), c.masses);
+  showMessage([
+    [`${c.name} isn't showing anything at the moment.`],
+    [s.live ? 'It may start in a minute or two. Tap Back and try again shortly.' : s.text + '.', 'small']
+  ]);
+}
+
+let hlsReady = null;
+function loadHls() {
+  hlsReady ||= new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = HLS_JS;
+    s.onload = () => resolve(window.Hls);
+    s.onerror = reject;
+    document.head.append(s);
+  });
+  return hlsReady;
+}
+
+/** Open a church full screen. Runs straight from her tap, so sound and full screen are allowed. */
+function watch(c) {
+  closePlayer();
+  current = { church: c, el: null, hls: null };
+  // The phone's own Back button comes back to the list instead of closing the app
+  history.pushState({ watching: c.id }, '');
+  home.hidden = true;
+  player.hidden = false;
+  back.setAttribute('aria-label', `Back to the list of churches`);
+  try { (player.requestFullscreen || player.webkitRequestFullscreen).call(player).catch?.(() => {}); } catch (e) {}
+
+  if (c.kind === 'page') {
+    const f = document.createElement('iframe');
+    f.src = c.src;
+    f.title = `Mass from ${c.name}`;
+    f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+    f.allowFullscreen = true;
+    current.el = f;
+    player.prepend(f);
+  } else {
+    const v = document.createElement('video');
+    v.controls = true;
+    v.playsInline = true;
+    v.autoplay = true;
+    v.setAttribute('playsinline', '');
+    v.title = `Mass from ${c.name}`;
+    v.addEventListener('error', () => offAir(c));
+    current.el = v;
+    player.prepend(v);
+    if (APPLE_HLS) {
+      v.src = c.src;            // iPhone and iPad play the feed directly
+      v.play().catch(() => {});
+    } else {
+      // Everything else uses hls.js: Chrome's own HLS player chokes on these feeds (content decoding error)
+      loadHls().then(Hls => {
+        if (!current || current.el !== v) return;
+        if (!Hls.isSupported()) return offAir(c);
+        const hls = new Hls();
+        current.hls = hls;
+        hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) offAir(c); });
+        hls.loadSource(c.src);
+        hls.attachMedia(v);
+        v.play().catch(() => {});
+      }).catch(() => offAir(c));
+    }
+  }
+  keepAwake();
+  back.focus({ preventScroll: true });
+}
+
+function closePlayer() {
+  if (!current) return;
+  if (current.hls) current.hls.destroy();
+  for (const el of [...player.children]) if (el !== back) el.remove();
+  current = null;
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    try { (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch?.(() => {}); } catch (e) {}
+  }
+  player.hidden = true;
+  home.hidden = false;
+  update();
+}
+
 // The on-screen Back button and the phone's Back button do the same thing
 back.addEventListener('click', () => {
-  if (history.state && history.state.video) history.back();   // popstate below does the rest
-  else { showWaiting(); update(); }
+  if (history.state && history.state.watching) history.back();   // popstate below closes the video
+  else closePlayer();
 });
-window.addEventListener('popstate', () => {
-  if (!video.hidden && !back.hidden) { showWaiting(); update(); }
-});
+window.addEventListener('popstate', () => { if (current) closePlayer(); });
 
+// Every "More churches" link opens in its own tab, so this app stays put underneath
+for (const a of document.querySelectorAll('#others a')) { a.target = '_blank'; a.rel = 'noopener'; }
+
+buildCards();
 update();
+// Fetch the video library early, so a tap on a Limerick church starts quickly
+if (!APPLE_HLS) setTimeout(() => loadHls().catch(() => { hlsReady = null; }), 1500);
 setInterval(update, 30000);
 document.addEventListener('visibilitychange', () => {
-  // Coming back to the app after Mass has finished: show the next Mass, not an old video
   if (document.hidden) return;
-  if (!video.hidden && back.hidden && nearest(clock()).ahead > EARLY) showWaiting();
   update();
-  if (!video.hidden && !wakeLock) showVideo(!back.hidden);
+  if (current) keepAwake();
 });
 </script>
 </body>
