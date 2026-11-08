@@ -365,6 +365,17 @@ function loadHls() {
   return hlsReady;
 }
 
+/** Full screen, then turn the picture sideways (Android) so the video is as big as it can be. */
+function goFullScreen() {
+  const request = player.requestFullscreen || player.webkitRequestFullscreen;
+  if (!request) return;
+  try {
+    Promise.resolve(request.call(player))
+      .then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape'))
+      .catch(() => {});   // phone said no: the video still fills the screen upright
+  } catch (e) {}
+}
+
 /** Open a church full screen. Runs straight from her tap, so sound and full screen are allowed. */
 function watch(c) {
   closePlayer();
@@ -374,7 +385,7 @@ function watch(c) {
   home.hidden = true;
   player.hidden = false;
   back.setAttribute('aria-label', `Back to the list of churches`);
-  try { (player.requestFullscreen || player.webkitRequestFullscreen).call(player).catch?.(() => {}); } catch (e) {}
+  goFullScreen();
 
   if (c.kind === 'page') {
     const f = document.createElement('iframe');
@@ -428,6 +439,7 @@ function closePlayer() {
   for (const el of [...player.children]) if (el !== back) el.remove();
   current = null;
   if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  try { screen.orientation.unlock(); } catch (e) {}
   if (document.fullscreenElement || document.webkitFullscreenElement) {
     try { (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch?.(() => {}); } catch (e) {}
   }

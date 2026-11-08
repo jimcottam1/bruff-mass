@@ -27,6 +27,12 @@ async function open(when, { size = { width: 412, height: 860 }, realFeeds = fals
     Date.now = () => realNow() + window.__skip;
     const realSetInterval = window.setInterval;
     window.setInterval = (fn, ms, ...a) => { window.__tick = fn; return realSetInterval(fn, 1e9, ...a); };
+    // Record what the page asks of the screen's orientation (a desktop test browser can't really rotate)
+    window.__orient = [];
+    if (window.screen && screen.orientation) {
+      screen.orientation.lock = (o) => { window.__orient.push(`lock:${o}`); return Promise.resolve(); };
+      screen.orientation.unlock = () => { window.__orient.push('unlock'); };
+    }
     window.__hidden = false;
     Object.defineProperty(Document.prototype, 'hidden', { get: () => window.__hidden, configurable: true });
     Object.defineProperty(Document.prototype, 'visibilityState', { get: () => window.__hidden ? 'hidden' : 'visible', configurable: true });
@@ -228,8 +234,12 @@ for (const id of ['bruff', 'stjohns']) {
   await sleep(500);
   const fs = await p.evaluate(() => document.fullscreenElement?.id || null);
   check(`11a ${id}: tapping Watch Mass goes full screen`, fs === 'player', `full screen element: ${fs}`);
+  const turned = await p.evaluate(() => window.__orient.join(','));
+  check(`11d ${id}: ...and turns the picture sideways`, turned === 'lock:landscape', turned);
   await tapBack(p);
   await sleep(300);
+  const released = await p.evaluate(() => window.__orient.join(','));
+  check(`11e ${id}: Back lets the phone turn upright again`, released === 'lock:landscape,unlock', released);
   const after = await p.evaluate(() => ({ fs: document.fullscreenElement?.id || null }));
   const s = await state(p);
   check(`11b ${id}: Back leaves full screen and shows the list`, after.fs === null && s.screen === 'list', `${after.fs} / ${s.screen}`);
