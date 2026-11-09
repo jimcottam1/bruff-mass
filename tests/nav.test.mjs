@@ -206,13 +206,37 @@ const MON = '2026-11-09';  // Monday: Mass at 10:00 in all three; St John's also
   const closed = await p.$eval('#others', d => d.open);
   check('9a more churches folded away at first', closed === false);
   await p.click('#others summary');
-  const info = await p.evaluate(() => ({ open: document.getElementById('others').open, n: document.querySelectorAll('#others a').length, newTab: [...document.querySelectorAll('#others a')].every(a => a.target === '_blank') }));
-  check('9b tapping opens it; all 18 links open in a new tab', info.open && info.n === 18 && info.newTab, JSON.stringify(info));
-  const popup = new Promise(r => browser.once('targetcreated', t => r(t.url())));
-  await p.click('#church-list a');
-  const url = await Promise.race([popup, sleep(3000).then(() => null)]);
-  const s = await state(p);
-  check('9c tapping a church opens a new tab, app stays on the list', !!url && s.screen === 'list', `${url} / ${s.screen}`);
+  const info = await p.evaluate(() => ({
+    open: document.getElementById('others').open,
+    churches: document.querySelectorAll('#church-list button').length,
+    links: [...document.querySelectorAll('#others a')].map(a => a.target)
+  }));
+  check('9b tapping opens it: 17 church buttons; the one ChurchServices link opens a new tab', info.open && info.churches === 17 && info.links.join() === '_blank', JSON.stringify(info));
+
+  // Scroll down to a church near the bottom, open it, come back
+  await p.$eval('[data-parish="nicker-parish"]', b => b.scrollIntoView({ block: 'center' }));
+  const before = await p.evaluate(() => Math.round(window.scrollY));
+  await p.click('[data-parish="nicker-parish"]');
+  await sleep(200);
+  let s = await state(p);
+  const src = await p.$eval('#player iframe', f => f.src).catch(() => '');
+  check('9c tapping a church opens it here, full screen, like Bruff', s.screen === 'player' && s.showing === 'page' && s.backButton, JSON.stringify(s));
+  check("9d ...with that church's ChurchCamLive player", /live-stream-wss\/index\.html\?id=279628125100520621118750&slug=nicker-parish$/.test(src), src);
+  const sign = await p.$eval('#tap-sign', el => el.textContent).catch(() => null);
+  check('9e ...and a sign saying the play button shows when Mass is on', /When Mass is on, a play button\s*shows here/.test(sign || ''), sign);
+  const bar = await p.$eval('#player iframe', f => f.getBoundingClientRect().top);
+  check("9f ...ChurchCamLive's menu bar out of sight, as on Bruff", bar === -57, `iframe top ${bar}`);
+  await tapBack(p);
+  s = await state(p);
+  const after = await p.evaluate(() => ({ y: Math.round(window.scrollY), open: document.getElementById('others').open }));
+  check('9g Back: the list again, still open at the same place', s.screen === 'list' && after.open && Math.abs(after.y - before) <= 2, `${JSON.stringify(after)} before ${before}`);
+  await p.click('[data-parish="limerickstmarys"]');
+  await sleep(200);
+  const service = await p.$eval('#tap-sign', el => el.textContent).catch(() => null);
+  check("9h Saint Mary's Cathedral (Church of Ireland) says service, not Mass", /When a service is on/.test(service || ''), service);
+  await phoneBack(p);
+  s = await state(p);
+  check("9i phone's Back from a church in the list: back to the list", s.screen === 'list', s.screen);
   await p.close();
 }
 
@@ -280,6 +304,23 @@ for (const [name, size] of [['upright', { width: 412, height: 860 }], ['on its s
   await sleep(300);
   const after = await p.evaluate(() => !!document.getElementById('tap-sign'));
   check(`12d Bruff (${name}): sign goes once she taps the picture`, after === false, `still there: ${after}`);
+  await p.close();
+}
+// The longer sign on the other churches must fit too, including beside the play button on a phone on its side
+for (const [name, size] of [['upright', { width: 412, height: 860 }], ['on its side', { width: 860, height: 412 }], ['small, on its side', { width: 760, height: 360 }]]) {
+  const p = await open(`${MON}T10:05`, { size });
+  await p.click('#others summary');
+  await p.click('[data-parish="croomparish"]');
+  await sleep(200);
+  const play = { x: size.width / 2, y: Math.min(size.width * 9 / 32, size.height - 40), halfW: 45, halfH: 25 };
+  const sign = await p.evaluate((play) => {
+    const s = document.getElementById('tap-sign');
+    if (!s) return null;
+    const r = s.getBoundingClientRect();
+    const overlaps = !(r.right < play.x - play.halfW || r.left > play.x + play.halfW || r.bottom < play.y - play.halfH || r.top > play.y + play.halfH);
+    return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, overlaps };
+  }, play);
+  check(`12h Croom (${name}): the longer sign is fully on screen and doesn't cover the play button`, sign && !sign.overlaps && sign.top >= 0 && sign.bottom <= size.height && sign.left >= 0 && sign.right <= size.width, JSON.stringify(sign));
   await p.close();
 }
 {

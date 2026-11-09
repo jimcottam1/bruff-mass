@@ -107,14 +107,15 @@ h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-hei
 .others[open] summary::before { content: "\2212"; }
 .others[open] { gap: 1rem; }
 .church-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
-.church-list a {
+.church-list button {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  min-height: 3.5rem; padding: 0.6rem 1rem;
+  width: 100%; min-height: 3.5rem; padding: 0.6rem 1rem;
   border: 2px solid var(--line); border-radius: 14px;
-  background: var(--card); color: var(--ink); text-decoration: none; font-weight: 700;
+  background: var(--card); color: var(--ink); font: inherit; font-weight: 700; text-align: left; cursor: pointer;
 }
-.church-list a::after { content: "\203A"; font-size: 2rem; line-height: 1; color: var(--accent); flex: none; }
-.church-list a:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+.church-list button::after { content: "\203A"; font-size: 2rem; line-height: 1; color: var(--accent); flex: none; }
+.church-list button:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+.church-list button:active { transform: translateY(2px); }
 .church-list .kind { font-weight: 400; color: var(--soft); }
 
 /* ---- Player: the chosen church fills the whole screen, with a big Back button ---- */
@@ -143,6 +144,7 @@ h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-hei
 }
 /* No room below the play button (phone on its side): sit beside it, pointing left */
 .tap-sign.beside { grid-auto-flow: column; align-items: center; gap: 0.4rem; text-align: left; }
+.tap-sign.beside p { min-width: 0; }
 .tap-sign.beside .arrow { transform: rotate(-90deg); }
 .tap-sign .arrow { width: 3rem; height: 3rem; color: #ffd84d; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
 .tap-sign p {
@@ -150,6 +152,7 @@ h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-hei
   border-radius: 14px; border: 3px solid #ffd84d;
   background: rgba(0, 0, 0, 0.8); color: #fff;
   font-size: 1.5rem; font-weight: 700; line-height: 1.25;
+  max-width: 20em;   /* the longer signs wrap into a few short lines rather than one long one */
 }
 @media (prefers-reduced-motion: no-preference) {
   .tap-sign .arrow { animation: nudge 1.2s ease-in-out infinite; }
@@ -179,26 +182,8 @@ h1 { font-family: var(--display); font-weight: 600; font-size: 3.25rem; line-hei
 
   <details class="others" id="others">
     <summary>More churches in Limerick</summary>
-    <p class="note">Each one opens that church's own page. Tap the play button on the picture there. Each church's Mass times are on its page.</p>
-    <ul class="church-list" id="church-list">
-      <li><a href="https://churchcamlive.ie/ballybricken">Ballybricken</a></li>
-      <li><a href="https://churchcamlive.ie/ballylanders">Ballylanders</a></li>
-      <li><a href="https://churchcamlive.ie/banogueparish">Banogue</a></li>
-      <li><a href="https://churchcamlive.ie/caherconlish-caherline-parish">Caherconlish and Caherline</a></li>
-      <li><a href="https://churchcamlive.ie/cappamore-parish">Cappamore</a></li>
-      <li><a href="https://churchcamlive.ie/croomparish">Croom</a></li>
-      <li><a href="https://churchcamlive.ie/doon-parish-live-stream">Doon</a></li>
-      <li><a href="https://churchcamlive.ie/hospitalherbertstown">Hospital and Herbertstown</a></li>
-      <li><a href="https://churchcamlive.ie/kilbehennyanglesboro">Kilbehenny and Anglesboro</a></li>
-      <li><a href="https://churchcamlive.ie/kilmallock-parish">Kilmallock</a></li>
-      <li><a href="https://churchcamlive.ie/kilteely-dromkeen-parish">Kilteely and Dromkeen</a></li>
-      <li><a href="https://churchcamlive.ie/knockainey-parish-live-stream">Knockainey</a></li>
-      <li><a href="https://churchcamlive.ie/knocklong-glenbrohane-parish-live-stream">Knocklong and Glenbrohane</a></li>
-      <li><a href="https://churchcamlive.ie/lough-gur-patrickswell">Lough Gur and Patrickswell</a></li>
-      <li><a href="https://churchcamlive.ie/nicker-parish">Nicker</a></li>
-      <li><a href="https://churchcamlive.ie/queen-of-peace">Queen of Peace</a></li>
-      <li><a href="https://churchcamlive.ie/limerickstmarys">Saint Mary's Cathedral <span class="kind">(Church of Ireland)</span></a></li>
-    </ul>
+    <p class="note">Each one opens here, full screen, like Bruff. When Mass is on, tap the play button on the picture. Most show their Mass times on the picture too.</p>
+    <ul class="church-list" id="church-list"></ul>
     <p class="note">More Limerick churches are on the <a href="https://www.churchservices.tv/timetable/">ChurchServices.tv timetable</a>.</p>
   </details>
 
@@ -245,6 +230,35 @@ const CHURCHES = [
     masses: [...weekdays(600), { day: 6, at: 1020 }, { day: 0, at: 690 }]
   }
 ];
+
+// ---- More churches: all on ChurchCamLive, so each opens in the same player as Bruff ----
+// cam = the parish's camera id from ChurchCamLive's public stream list (churchcamlive.ie/data/streams_datav2.json),
+// slug = its page name on churchcamlive.ie. Their cameras are usually off between Masses, so the sign says so.
+const PARISHES = [
+  ['Ballybricken', 'ballybricken', '032331731063932404551387'],
+  ['Ballylanders', 'ballylanders', 'Ballylandersrtsp'],
+  ['Banogue', 'banogueparish', '337693693773701577649809'],
+  ['Caherconlish and Caherline', 'caherconlish-caherline-parish', '521918922528984795774646'],
+  ['Cappamore', 'cappamore-parish', '455573199197787858786651'],
+  ['Croom', 'croomparish', '290244756760824497677453'],
+  ['Doon', 'doon-parish-live-stream', '596899265917699648735053'],
+  ['Hospital and Herbertstown', 'hospitalherbertstown', 'hospital'],
+  ['Kilbehenny and Anglesboro', 'kilbehennyanglesboro', '936306060900122220955473'],
+  ['Kilmallock', 'kilmallock-parish', '201307229742514062043621'],
+  ['Kilteely and Dromkeen', 'kilteely-dromkeen-parish', '168969757931601457816856'],
+  ['Knockainey', 'knockainey-parish-live-stream', '915055914983732993912825'],
+  ['Knocklong and Glenbrohane', 'knocklong-glenbrohane-parish-live-stream', '738770128437669500772677'],
+  ['Lough Gur and Patrickswell', 'lough-gur-patrickswell', '077452678173024423388694'],
+  ['Nicker', 'nicker-parish', '279628125100520621118750'],
+  ['Queen of Peace', 'queen-of-peace', 'queenofpeace'],
+  ["Saint Mary's Cathedral", 'limerickstmarys', 'SaintMarysLimerick', 'Church of Ireland']
+].map(([name, slug, cam, kindOf]) => ({
+  id: slug, name, kindOf,
+  kind: 'page',
+  src: `https://churchcamlive.ie/live-stream-wss/index.html?id=${encodeURIComponent(cam)}&slug=${encodeURIComponent(slug)}`,
+  // No forced line break: these are longer than Bruff's sign, so let them wrap to the screen
+  sign: kindOf ? 'When a service is on, a play button shows here. Tap it to start.' : 'When Mass is on, a play button shows here. Tap it to start.'
+}));
 
 const EARLY = 10;    // minutes before Mass a card turns red
 const LENGTH = 60;   // minutes after the start a card stays red
@@ -393,13 +407,14 @@ function loadHls() {
   return hlsReady;
 }
 
-/** Bruff's player needs its own play button tapped: point at it until she taps the picture. */
-function showTapSign(frame) {
+/** ChurchCamLive's player needs its own play button tapped: point at it until she taps the picture. */
+function showTapSign(frame, text) {
   const sign = document.createElement('div');
   sign.className = 'tap-sign';
   sign.id = 'tap-sign';
   sign.setAttribute('role', 'status');
-  sign.innerHTML = '<svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l8 9h-5v9H9v-9H4z"/></svg><p>Tap the play button<br>to start Mass</p>';
+  // text is our own fixed wording (it holds a <br>), never anything from outside the page
+  sign.innerHTML = `<svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l8 9h-5v9H9v-9H4z"/></svg><p>${text || 'Tap the play button<br>to start Mass'}</p>`;
   player.append(sign);
   placeTapSign();
   // A tap on the picture moves focus into the player, which this page sees as losing focus
@@ -418,7 +433,7 @@ function showTapSign(frame) {
   setTimeout(removeSign, 120000);   // never leave it up for the whole Mass
 }
 
-/** Where Bruff's play button is: the middle of a 16:9 picture as wide as the screen, starting at the top. */
+/** Where the play button is on ChurchCamLive's player: the middle of a 16:9 picture as wide as the screen, starting at the top. */
 function playButtonY() { return Math.min(innerWidth * 9 / 32, innerHeight - 40); }
 
 /** Put the sign just below the play button, or beside it if there's no room below. */
@@ -434,7 +449,10 @@ function placeTapSign() {
     sign.style.top = `${y + BUTTON}px`;
   } else {
     sign.classList.add('beside');
-    sign.style.left = `${innerWidth / 2 + 56}px`;
+    const left = innerWidth / 2 + 56;
+    sign.style.left = `${left}px`;
+    // Only the space to the right of the play button: the longer signs wrap to fit it
+    sign.style.maxWidth = `${innerWidth - left - 8}px`;
     sign.style.top = `${Math.max(8, y - sign.offsetHeight / 2)}px`;
   }
 }
@@ -453,7 +471,9 @@ function goFullScreen() {
 /** Open a church full screen. Runs straight from her tap, so sound and full screen are allowed. */
 function watch(c) {
   closePlayer();
-  current = { church: c, el: null, hls: null };
+  // Remember where she was in the list, so Back returns her to the same spot
+  const scroll = window.scrollY;
+  current = { church: c, el: null, hls: null, scroll };
   // The phone's own Back button comes back to the list instead of closing the app
   history.pushState({ watching: c.id }, '');
   home.hidden = true;
@@ -470,7 +490,7 @@ function watch(c) {
     f.className = 'trim-top';
     current.el = f;
     player.prepend(f);
-    showTapSign(f);
+    showTapSign(f, c.sign);
   } else {
     const v = document.createElement('video');
     v.controls = true;
@@ -513,7 +533,9 @@ function closePlayer() {
   if (!current) return;
   if (current.hls) current.hls.destroy();
   for (const el of [...player.children]) if (el !== back) el.remove();
+  const scroll = current.scroll || 0;
   current = null;
+  requestAnimationFrame(() => window.scrollTo(0, scroll));
   if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
   try { screen.orientation.unlock(); } catch (e) {}
   if (document.fullscreenElement || document.webkitFullscreenElement) {
@@ -531,9 +553,35 @@ back.addEventListener('click', () => {
 });
 window.addEventListener('popstate', () => { if (current) closePlayer(); });
 
-// Every "More churches" link opens in its own tab, so this app stays put underneath
+// The "More churches" list: one big button each, opening that church here like Bruff
+function buildParishes() {
+  const list = document.getElementById('church-list');
+  for (const c of PARISHES) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.parish = c.id;
+    // Name and note in one span, so the button's › arrow stays at the far end
+    const label = document.createElement('span');
+    label.textContent = c.name;
+    if (c.kindOf) {
+      const k = document.createElement('span');
+      k.className = 'kind';
+      k.textContent = ` (${c.kindOf})`;
+      label.append(k);
+    }
+    b.append(label);
+    b.setAttribute('aria-label', `Watch ${c.name}`);
+    b.addEventListener('click', () => watch(c));
+    li.append(b);
+    list.append(li);
+  }
+}
+
+// The ChurchServices.tv link still opens in its own tab, so this app stays put underneath
 for (const a of document.querySelectorAll('#others a')) { a.target = '_blank'; a.rel = 'noopener'; }
 
+buildParishes();
 buildCards();
 update();
 // Fetch the video library early, so a tap on a Limerick church starts quickly
